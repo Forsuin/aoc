@@ -16,21 +16,35 @@ impl Combination {
     }
 
     pub fn rotate_left(&mut self, amount: i32) {
+        let old_num = self.current_num;
+
         self.current_num = (self.current_num - amount).rem_euclid(100);
 
         if self.current_num == 0 {
             self.num_zeros += 1;
+        }
+
+        if old_num < self.current_num && self.current_num != 0 && old_num != 0 {
             self.pass_zeros += 1;
         }
     }
 
     pub fn rotate_right(&mut self, amount: i32) {
+        let old_num = self.current_num;
+
         self.current_num = (self.current_num + amount).rem_euclid(100);
 
         if self.current_num == 0 {
             self.num_zeros += 1;
+        }
+
+        if old_num > self.current_num && self.current_num != 0 && old_num != 0 {
             self.pass_zeros += 1;
         }
+    }
+
+    pub fn add_full_rotations(&mut self, num_rotations: u32) {
+        self.pass_zeros += num_rotations;
     }
 }
 
@@ -65,22 +79,31 @@ pub fn part_two(input: &str) -> Option<u64> {
                 'L' => {
                     let amount = &l[1..].parse::<i32>().expect("Parsing fucked up");
 
-                    for _ in 0..*amount {
-                        combo.rotate_left(1);
+                    let num_complete_rotations = amount / 100;
+                    let extra_rot = amount % 100;
+
+                    if num_complete_rotations > 0 {
+                        combo.add_full_rotations(num_complete_rotations as u32);
                     }
+                    combo.rotate_left(extra_rot);
                 }
                 'R' => {
                     let amount = &l[1..].parse::<i32>().expect("Parsing fucked up");
 
-                    for _ in 0..*amount {
-                        combo.rotate_right(1);
+                    let num_complete_rotations = amount / 100;
+                    let extra_rot = amount % 100;
+
+                    if num_complete_rotations > 0 {
+                        combo.add_full_rotations(num_complete_rotations as u32);
                     }
+                    combo.rotate_right(extra_rot);
                 }
                 bad @ _ => panic!("Unexpected character at beginning of line: {bad}")
             }
         });
 
-    Some(combo.pass_zeros as u64)
+    // println!("Passed zeros: {}, Num zeroes: {}", combo.pass_zeros, combo.num_zeros);
+    Some(combo.pass_zeros as u64 + combo.num_zeros as u64)
 }
 
 #[cfg(test)]
